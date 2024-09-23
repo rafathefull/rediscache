@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.lettuce.core.RedisClient;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +47,7 @@ public class RedisConfig {
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
                 .withCacheConfiguration(CacheConfig.user, userCacheConfig)
-                .withCacheConfiguration("country", countryCacheConfig)  // Si tuviera más configuraciones de caché, se añadirían aquí, por ejemplo, si caducidad.
+                .withCacheConfiguration(CacheConfig.country, countryCacheConfig)  // Si tuviera más configuraciones de caché, se añadirían aquí, por ejemplo, sin caducidad.
                 .build();
     }
 
@@ -59,5 +60,11 @@ public class RedisConfig {
         mapper.activateDefaultTyping(mapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_FINAL);
 
         return mapper;
+    }
+
+    @Bean
+    public RedisClient redisClient() {
+        // Configurar la conexión a Redis (aquí puedes cambiar la URL si es necesario)
+        return RedisClient.create("redis://localhost:6379");  // TODO; Coger valores de las propiedades de la aplicación
     }
 }
