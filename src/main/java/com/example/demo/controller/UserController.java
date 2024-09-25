@@ -2,11 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.persistence.domain.User;
 import com.example.demo.persistence.domain.dto.UserDTO;
-import com.example.demo.persistence.service.RedisCacheService;
 import com.example.demo.persistence.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -17,14 +13,13 @@ import java.time.LocalDateTime;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/demo")
-public class DemoController {
+@RequestMapping("/user")
+public class UserController {
 
     private final ModelMapper modelMapper;
 
     private final UserService userService;
 
-    private final RedisCacheService redisCacheService;
 
     @GetMapping
     public ResponseEntity<String> sayHello() {
@@ -58,23 +53,6 @@ public class DemoController {
         user = userService.save(user);
 
         return new ResponseEntity<>(user, HttpStatus.OK);
-    }
-
-    /**
-     * Clear the cache using the RedisCacheService
-     *
-     * @return
-     */
-    @Operation(summary = "Limpiar la caché de Redis")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Cache limpiada correctamente"),
-            @ApiResponse(responseCode = "500", description = "Error al limpiar la caché")
-    })
-    @DeleteMapping("/clearCache")
-    public ResponseEntity<String> clearCache() {
-        redisCacheService.clearCache();
-
-        return new ResponseEntity<>("Cache cleared", HttpStatus.OK);
     }
 
 }

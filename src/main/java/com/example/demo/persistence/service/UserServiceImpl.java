@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED, readOnly = false, timeout = 50000, isolation = Isolation.READ_UNCOMMITTED)
+@Transactional(propagation = Propagation.REQUIRED, timeout = 50000, isolation = Isolation.READ_UNCOMMITTED)
 public class UserServiceImpl implements UserService {
 
     @Autowired

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.lettuce.core.RedisClient;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +22,10 @@ public class RedisConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         // Configurar Jackson2JsonRedisSerializer con el ObjectMapper directamente
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>( RedisObjectMapper(), Object.class);
+        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>( redisObjectMapper(), Object.class);
 
         // Configuración para el caché de "country" (sin caducidad)
-        RedisCacheConfiguration countryCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration cacheWithoutLimit = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
                 .entryTtl(Duration.ZERO); // Duration.ZERO indica que no caduca
@@ -38,7 +37,7 @@ public class RedisConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer));
 
         // Configuración para el caché de "user" (caducidad de 10 minutos)
-        RedisCacheConfiguration userCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration cacheConfig10m = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer))
                 .entryTtl(Duration.ofMinutes(10));
@@ -46,14 +45,15 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
-                .withCacheConfiguration(CacheConfig.user, userCacheConfig)
-                .withCacheConfiguration(CacheConfig.country, countryCacheConfig)  // Si tuviera más configuraciones de caché, se añadirían aquí, por ejemplo, sin caducidad.
+                .withCacheConfiguration(CacheConfig.user, cacheConfig10m)
+                .withCacheConfiguration(CacheConfig.country, cacheWithoutLimit)
+                .withCacheConfiguration(CacheConfig.countryList, cacheWithoutLimit)
                 .build();
     }
 
     // Crear y configurar ObjectMapper
     @Bean
-    public ObjectMapper RedisObjectMapper() {
+    public ObjectMapper redisObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
@@ -62,9 +62,4 @@ public class RedisConfig {
         return mapper;
     }
 
-    @Bean
-    public RedisClient redisClient() {
-        // Configurar la conexión a Redis (aquí puedes cambiar la URL si es necesario)
-        return RedisClient.create("redis://localhost:6379");  // TODO; Coger valores de las propiedades de la aplicación
-    }
 }

@@ -2,24 +2,26 @@ package com.example.demo.persistence.service;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
 public class RedisCacheServiceImplService implements RedisCacheService {
 
-    private RedisClient redisClient;
+    @Value("${spring.data.redis.host}")
+    private String host;
+
+    @Value("${spring.data.redis.port}")
+    private String port;
 
     public void clearCache() {
-        // Obtener comandos sincrónicos
-        RedisCommands<String, String> syncCommands = redisClient.connect().sync();
-
-        // Limpiar la caché
-        syncCommands.flushall();
-
-        // Cerrar la conexión (podrías optar por no cerrar aquí si la conexión es usada frecuentemente)
-        redisClient.shutdown();
-
+        try (RedisClient redisClient = RedisClient.create("redis://" + host + ":" + port)) {
+            // Obtener comandos sincrónicos
+            RedisCommands<String, String> syncCommands = redisClient.connect().sync();
+            // Limpiar la caché
+            syncCommands.flushall();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
