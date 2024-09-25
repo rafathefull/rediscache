@@ -26,6 +26,8 @@ Tecnologías utilizadas:
 
 
 # Test simple, get country by code
+--> Primera petición, se realiza una consulta a la base de datos y se guarda en la cache.
+
 2024-09-25T09:22:28.860+02:00  INFO 43300 --- [redis] [nio-9093-exec-2] c.e.d.c.interceptor.RequestInterceptor   :
 requestURL: http://localhost:9093/demo/country/ES
 remoteHost: 127.0.0.1
@@ -33,6 +35,8 @@ servletPath:/country/ES
 method:     GET
 status:     200
 afterCompletion Execution Time: 398ms
+
+--> Segunda petición, se recupera de la cache. Se puede observar los tiempos , de 398ms a 2ms.
 
 2024-09-25T09:22:33.970+02:00  INFO 43300 --- [redis] [nio-9093-exec-3] c.e.d.c.interceptor.RequestInterceptor   :
 requestURL: http://localhost:9093/demo/country/ES
